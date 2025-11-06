@@ -15,9 +15,9 @@ const BSC_MAINNET = {
     blockExplorerUrls: ['https://bscscan.com']
 };
 
-// Contract Addresses
-const USDT_CONTRACT_ADDRESS = '0x55d398326f99059fF775485246999027B3197955';
-const PROGRAM_CONTRACT_ADDRESS = '0x8B9c85D168d82D6266d71b6f31bb48e3bE1caDf4'; // TODO: Update this!
+// Contract Addresses from environment variables
+const USDT_CONTRACT_ADDRESS = window.CONTRACT_ADDRESSES?.USDT_CONTRACT_ADDRESS || '0x55d398326f99059fF775485246999027B3197955';
+const PROGRAM_CONTRACT_ADDRESS = window.CONTRACT_ADDRESSES?.PROGRAM_CONTRACT_ADDRESS || '0x8B9c85D168d82D6266d71b6f31bb48e3bE1caDf4';
 
 // ABIs
 const USDT_ABI = [
@@ -91,7 +91,7 @@ async function connectAdminWallet() {
         // Initialize contracts
         usdtContract = new web3.eth.Contract(USDT_ABI, USDT_CONTRACT_ADDRESS);
         
-        if (PROGRAM_CONTRACT_ADDRESS !== 'YOUR_PROGRAM_CONTRACT_ADDRESS_HERE') {
+        if (PROGRAM_CONTRACT_ADDRESS && PROGRAM_CONTRACT_ADDRESS !== 'YOUR_PROGRAM_CONTRACT_ADDRESS_HERE') {
             programContract = new web3.eth.Contract(PROGRAM_ABI, PROGRAM_CONTRACT_ADDRESS);
             
             // Verify admin

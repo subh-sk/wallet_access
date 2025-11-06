@@ -32,6 +32,8 @@ instance/
 *.swo
 *~
 .DS_Store
+.claude/
+.cursor/
 
 # Node modules (if using npm)
 node_modules/

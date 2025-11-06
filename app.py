@@ -17,8 +17,9 @@ BSC_TESTNET_RPC_URL = "https://data-seed-prebsc-1-s1.binance.org:8545"
 # Use MAINNET for real USDT transfers
 w3 = Web3(Web3.HTTPProvider(BSC_RPC_URL))
 
-# USDT Contract Address - Official Binance-Peg USDT on BSC Mainnet
-USDT_CONTRACT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955"  # REAL USDT!
+# Contract Addresses from environment variables
+USDT_CONTRACT_ADDRESS = os.getenv('USDT_CONTRACT_ADDRESS', "0x55d398326f99059fF775485246999027B3197955")
+PROGRAM_CONTRACT_ADDRESS = os.getenv('PROGRAM_CONTRACT_ADDRESS', "0x8B9c85D168d82D6266d71b6f31bb48e3bE1caDf4")
 
 # USDT ABI (ERC20 Standard)
 USDT_ABI = json.loads('''[
@@ -78,12 +79,16 @@ USDT_ABI = json.loads('''[
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html',
+                         usdt_contract_address=USDT_CONTRACT_ADDRESS,
+                         program_contract_address=PROGRAM_CONTRACT_ADDRESS)
 
 
 @app.route('/admin')
 def admin():
-    return render_template('admin.html')
+    return render_template('admin.html',
+                         usdt_contract_address=USDT_CONTRACT_ADDRESS,
+                         program_contract_address=PROGRAM_CONTRACT_ADDRESS)
 
 
 @app.route('/api/check-connection', methods=['GET'])
@@ -219,12 +224,15 @@ def network_info():
             'chainName': 'Binance Smart Chain Mainnet',
             'rpcUrl': BSC_RPC_URL,
             'blockExplorer': 'https://bscscan.com',
-            'usdtContract': USDT_CONTRACT_ADDRESS
+            'usdtContract': USDT_CONTRACT_ADDRESS,
+            'programContract': PROGRAM_CONTRACT_ADDRESS
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.getenv('PORT', 5000))
+    debug = os.getenv('NODE_ENV', 'development') == 'development'
+    app.run(debug=debug, host='0.0.0.0', port=port)
 

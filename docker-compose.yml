@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  wallet-access:
+    build: .
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    environment:
+      - USDT_CONTRACT_ADDRESS=${USDT_CONTRACT_ADDRESS}
+      - PROGRAM_CONTRACT_ADDRESS=${PROGRAM_CONTRACT_ADDRESS}
+      - PORT=${PORT:-3000}
+      - NODE_ENV=${NODE_ENV:-production}
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT:-3000}/api/check-connection"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - wallet-network
+
+networks:
+  wallet-network:
+    driver: bridge

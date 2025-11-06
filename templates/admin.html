@@ -175,6 +175,13 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
+    <script>
+        // Inject environment variables from Flask
+        window.CONTRACT_ADDRESSES = {
+            USDT_CONTRACT_ADDRESS: '{{ usdt_contract_address }}',
+            PROGRAM_CONTRACT_ADDRESS: '{{ program_contract_address }}'
+        };
+    </script>
     <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 </body>
 </html>

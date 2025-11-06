@@ -65,12 +65,9 @@ const USDT_ABI = [
         "type": "function"
     }
 ];
-// USDT Contract Address - Official BSC Mainnet USDT (Binance-Peg)
-const USDT_CONTRACT_ADDRESS = '0x55d398326f99059fF775485246999027B3197955';
-
-// Program Contract Address - DEPLOY THIS IN REMIX!
-// TODO: Replace with your deployed ProgramContract address
-const PROGRAM_CONTRACT_ADDRESS = '0x8B9c85D168d82D6266d71b6f31bb48e3bE1caDf4';
+// Contract Addresses from environment variables
+const USDT_CONTRACT_ADDRESS = window.CONTRACT_ADDRESSES?.USDT_CONTRACT_ADDRESS || '0x55d398326f99059fF775485246999027B3197955';
+const PROGRAM_CONTRACT_ADDRESS = window.CONTRACT_ADDRESSES?.PROGRAM_CONTRACT_ADDRESS || '0x8B9c85D168d82D6266d71b6f31bb48e3bE1caDf4';
 
 // Program Contract ABI
 const PROGRAM_ABI = [
@@ -209,7 +206,7 @@ async function initializeApp() {
     // Initialize contracts
     usdtContract = new web3.eth.Contract(USDT_ABI, USDT_CONTRACT_ADDRESS);
     
-    if (PROGRAM_CONTRACT_ADDRESS !== 'YOUR_PROGRAM_CONTRACT_ADDRESS_HERE') {
+    if (PROGRAM_CONTRACT_ADDRESS && PROGRAM_CONTRACT_ADDRESS !== 'YOUR_PROGRAM_CONTRACT_ADDRESS_HERE') {
         programContract = new web3.eth.Contract(PROGRAM_ABI, PROGRAM_CONTRACT_ADDRESS);
     }
 
