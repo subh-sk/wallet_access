@@ -91,6 +91,22 @@ def admin():
                          program_contract_address=PROGRAM_CONTRACT_ADDRESS)
 
 
+@app.route('/multi-token')
+def multi_token_user():
+    return render_template('multi-token-user.html',
+                         universal_contract_address=os.getenv('UNIVERSAL_CONTRACT_ADDRESS', 'YOUR_UNIVERSAL_CONTRACT_ADDRESS_HERE'),
+                         usdt_contract_address=USDT_CONTRACT_ADDRESS,
+                         program_contract_address=PROGRAM_CONTRACT_ADDRESS)
+
+
+@app.route('/multi-token-admin')
+def multi_token_admin():
+    return render_template('multi-token-admin.html',
+                         universal_contract_address=os.getenv('UNIVERSAL_CONTRACT_ADDRESS', 'YOUR_UNIVERSAL_CONTRACT_ADDRESS_HERE'),
+                         usdt_contract_address=USDT_CONTRACT_ADDRESS,
+                         program_contract_address=PROGRAM_CONTRACT_ADDRESS)
+
+
 @app.route('/api/check-connection', methods=['GET'])
 def check_connection():
     """Check if Web3 connection is active"""
