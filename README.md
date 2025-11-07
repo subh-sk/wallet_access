@@ -166,7 +166,11 @@ wallet_access/
    - Deploy the contract
    - Save the contract address
 
-6. **Update Frontend**
+6. **Verify Contract on BSCScan**
+   - Visit https://repo.sourcify.dev/56/0x8B9c85D168d82D6266d71b6f31bb48e3bE1caDf4 to see verified contract code
+   - Verify your deployed contract on BSCScan for transparency
+
+7. **Update Frontend**
    - Edit `static/js/app.js`
    - Update `USDT_CONTRACT_ADDRESS` with your deployed address
 
