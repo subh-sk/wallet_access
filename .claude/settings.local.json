@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(python:*)",
+      "Bash(MONGODB_URI=\"mongodb://invalid-host:27017/\" python:*)"
     ],
     "deny": [],
     "ask": []
